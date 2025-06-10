@@ -73,7 +73,19 @@ def registrar_estudiante(datos):
         os.makedirs("imagenes_temporales", exist_ok=True)
         imagen.save(ruta_imagen)
 
-        # Procesar imagen
+        # Precargar estudiantes actuales
+        estudiantes = cargar_estudiantes()
+
+        # Validar si ya está registrado
+        reconocimiento = reconocer_estudiante(ruta_imagen, estudiantes)
+        if reconocimiento.get("status") == "identificado":
+            os.remove(ruta_imagen)
+            return {
+                "status": "duplicado",
+                "mensaje": f"Ya está registrado como: {reconocimiento['nombres']} {reconocimiento['apellidos']} (ID: {reconocimiento['id_estudiante']})"
+            }
+
+        # Procesar imagen nueva
         imagen_cargada = face_recognition.load_image_file(ruta_imagen)
         encodings = face_recognition.face_encodings(imagen_cargada)
 
