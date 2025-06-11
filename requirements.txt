@@ -2,3 +2,4 @@ Flask
 face_recognition
 psycopg2-binary
 Werkzeug
+gunicorn
