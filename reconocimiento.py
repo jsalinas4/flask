@@ -8,10 +8,10 @@ def cargar_estudiantes():
     estudiantes = []
     try:
         conn = psycopg2.connect(
-            host="localhost",
+            host="dpg-d150l7p5pdvs73ep34t0-a.oregon-postgres.render.com",
             database="bd_estudiantes",
-            user="postgres",
-            password="adminsql"
+            user="bd_estudiantes_user",
+            password="p8kt9BUdSQHRPtS17BE84goMpCmFSn12"
         )
         cursor = conn.cursor()
         cursor.execute("SELECT id_estudiante, nombres, apellidos, correo, requisitoriado, kp FROM estudiantes")
