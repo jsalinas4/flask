@@ -99,10 +99,10 @@ def registrar_estudiante(datos):
         foto_binaria = imagen.read()
 
         conn = psycopg2.connect(
-            host="localhost",
+            host="dpg-d150l7p5pdvs73ep34t0-a.oregon-postgres.render.com",
             database="bd_estudiantes",
-            user="postgres",
-            password="adminsql"
+            user="bd_estudiantes_user",
+            password="p8kt9BUdSQHRPtS17BE84goMpCmFSn12"
         )
         cursor = conn.cursor()
         cursor.execute("""
