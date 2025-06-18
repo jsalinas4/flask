@@ -27,11 +27,11 @@ def cargar_estudiantes():
                     "requisitoriado": requisitoriado
                 })
             except Exception:
-                continue  # Ignorar errores en deserialización
+                continue  
         cursor.close()
         conn.close()
     except Exception as e:
-        print("❌ Error al cargar estudiantes desde la base de datos:", e)
+        print("Error al cargar estudiantes desde la base de datos:", e)
     return estudiantes
 
 def reconocer_estudiante(ruta_imagen, estudiantes):
@@ -73,10 +73,10 @@ def registrar_estudiante(datos):
         os.makedirs("imagenes_temporales", exist_ok=True)
         imagen.save(ruta_imagen)
 
-        # Precargar estudiantes actuales
+        
         estudiantes = cargar_estudiantes()
 
-        # Validar si ya está registrado
+        
         reconocimiento = reconocer_estudiante(ruta_imagen, estudiantes)
         if reconocimiento.get("status") == "identificado":
             os.remove(ruta_imagen)
@@ -85,7 +85,7 @@ def registrar_estudiante(datos):
                 "mensaje": f"Ya está registrado como: {reconocimiento['nombres']} {reconocimiento['apellidos']} (ID: {reconocimiento['id_estudiante']})"
             }
 
-        # Procesar imagen nueva
+       
         imagen_cargada = face_recognition.load_image_file(ruta_imagen)
         encodings = face_recognition.face_encodings(imagen_cargada)
 
@@ -131,3 +131,104 @@ def registrar_estudiante(datos):
         except:
             pass
         return {"error": f"Error al registrar estudiante: {str(e)}"}
+
+
+# Obtener todos los estudiantes
+def obtener_todos_los_estudiantes():
+    estudiantes = []
+    try:
+        conn = psycopg2.connect(
+            host="dpg-d150l7p5pdvs73ep34t0-a.oregon-postgres.render.com",
+            database="bd_estudiantes",
+            user="bd_estudiantes_user",
+            password="p8kt9BUdSQHRPtS17BE84goMpCmFSn12"
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT id_estudiante, nombres, apellidos, correo, requisitoriado FROM estudiantes")
+        for fila in cursor.fetchall():
+            estudiantes.append({
+                "id_estudiante": fila[0],
+                "nombres": fila[1],
+                "apellidos": fila[2],
+                "correo": fila[3],
+                "requisitoriado": fila[4]
+            })
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        return {"error": str(e)}
+    return estudiantes
+
+# Obtener estudiante por ID
+def obtener_estudiante_por_id(id_estudiante):
+    try:
+        conn = psycopg2.connect(
+            host="dpg-d150l7p5pdvs73ep34t0-a.oregon-postgres.render.com",
+            database="bd_estudiantes",
+            user="bd_estudiantes_user",
+            password="p8kt9BUdSQHRPtS17BE84goMpCmFSn12"
+        )
+        cursor = conn.cursor()
+        cursor.execute("SELECT id_estudiante, nombres, apellidos, correo, requisitoriado FROM estudiantes WHERE id_estudiante = %s", (id_estudiante,))
+        fila = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if fila:
+            return {
+                "id_estudiante": fila[0],
+                "nombres": fila[1],
+                "apellidos": fila[2],
+                "correo": fila[3],
+                "requisitoriado": fila[4]
+            }
+        else:
+            return None
+    except Exception as e:
+        return {"error": str(e)}
+
+# Actualizar estudiante
+def actualizar_estudiante(id_estudiante, datos):
+    try:
+        conn = psycopg2.connect(
+            host="dpg-d150l7p5pdvs73ep34t0-a.oregon-postgres.render.com",
+            database="bd_estudiantes",
+            user="bd_estudiantes_user",
+            password="p8kt9BUdSQHRPtS17BE84goMpCmFSn12"
+        )
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE estudiantes SET nombres=%s, apellidos=%s, correo=%s, requisitoriado=%s
+            WHERE id_estudiante=%s
+        """, (
+            datos["nombres"],
+            datos["apellidos"],
+            datos["correo"],
+            datos["requisitoriado"],
+            id_estudiante
+        ))
+        conn.commit()
+        actualizado = cursor.rowcount
+        cursor.close()
+        conn.close()
+        return actualizado > 0
+    except Exception as e:
+        return {"error": str(e)}
+
+# Eliminar estudiante
+def eliminar_estudiante(id_estudiante):
+    try:
+        conn = psycopg2.connect(
+            host="dpg-d150l7p5pdvs73ep34t0-a.oregon-postgres.render.com",
+            database="bd_estudiantes",
+            user="bd_estudiantes_user",
+            password="p8kt9BUdSQHRPtS17BE84goMpCmFSn12"
+        )
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM estudiantes WHERE id_estudiante = %s", (id_estudiante,))
+        conn.commit()
+        eliminado = cursor.rowcount
+        cursor.close()
+        conn.close()
+        return eliminado > 0
+    except Exception as e:
+        return {"error": str(e)}

@@ -1,10 +1,11 @@
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
-from reconocimiento import cargar_estudiantes, reconocer_estudiante, registrar_estudiante
+from reconocimiento import cargar_estudiantes, reconocer_estudiante, registrar_estudiante, obtener_estudiante_por_id
+from reconocimiento import obtener_todos_los_estudiantes, actualizar_estudiante, eliminar_estudiante
 
 app = Flask(__name__)
 
-# Precargar los datos al iniciar
+
 estudiantes_precargados = cargar_estudiantes()
 
 @app.route('/reconocer', methods=['POST'])
@@ -46,6 +47,45 @@ def registrar():
 
     resultado = registrar_estudiante(datos)
     return jsonify(resultado)
+
+@app.route('/estudiantes', methods=['GET'])
+def listar_estudiantes():
+    estudiantes = obtener_todos_los_estudiantes()
+    if isinstance(estudiantes, dict) and "error" in estudiantes:
+        return jsonify(estudiantes), 500
+    return jsonify(estudiantes)
+
+@app.route('/estudiantes/<id_estudiante>', methods=['GET'])
+def obtener_estudiante(id_estudiante):
+    resultado = obtener_estudiante_por_id(id_estudiante)
+    if resultado is None:
+        return jsonify({"error": "Estudiante no encontrado"}), 404
+    if isinstance(resultado, dict) and "error" in resultado:
+        return jsonify(resultado), 500
+    return jsonify(resultado)
+
+@app.route('/estudiantes/<id_estudiante>', methods=['PUT'])
+def modificar_estudiante(id_estudiante):
+    data = request.get_json()
+    campos = ['nombres', 'apellidos', 'correo', 'requisitoriado']
+    if not all(campo in data for campo in campos):
+        return jsonify({"error": "Faltan campos obligatorios"}), 400
+    actualizado = actualizar_estudiante(id_estudiante, data)
+    if isinstance(actualizado, dict):
+        return jsonify(actualizado), 500
+    if not actualizado:
+        return jsonify({"error": "Estudiante no encontrado"}), 404
+    return jsonify({"status": "ok", "mensaje": "Estudiante actualizado correctamente"})
+
+@app.route('/estudiantes/<id_estudiante>', methods=['DELETE'])
+def eliminar_estudiante_api(id_estudiante):
+    resultado = eliminar_estudiante(id_estudiante)
+    if isinstance(resultado, dict):
+        return jsonify(resultado), 500
+    if not resultado:
+        return jsonify({"error": "Estudiante no encontrado"}), 404
+    return jsonify({"status": "ok", "mensaje": "Estudiante eliminado correctamente"})
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
