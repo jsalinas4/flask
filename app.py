@@ -46,6 +46,11 @@ def registrar():
     }
 
     resultado = registrar_estudiante(datos)
+
+    if resultado.get("status") == "ok":
+        global estudiantes_precargados
+        estudiantes_precargados = cargar_estudiantes()
+
     return jsonify(resultado)
 
 @app.route('/estudiantes', methods=['GET'])
@@ -75,6 +80,10 @@ def modificar_estudiante(id_estudiante):
         return jsonify(actualizado), 500
     if not actualizado:
         return jsonify({"error": "Estudiante no encontrado"}), 404
+    
+    global estudiantes_precargados
+    estudiantes_precargados = cargar_estudiantes()
+
     return jsonify({"status": "ok", "mensaje": "Estudiante actualizado correctamente"})
 
 @app.route('/estudiantes/<id_estudiante>', methods=['DELETE'])
@@ -84,6 +93,10 @@ def eliminar_estudiante_api(id_estudiante):
         return jsonify(resultado), 500
     if not resultado:
         return jsonify({"error": "Estudiante no encontrado"}), 404
+    
+    global estudiantes_precargados
+    estudiantes_precargados = cargar_estudiantes()
+    
     return jsonify({"status": "ok", "mensaje": "Estudiante eliminado correctamente"})
 
 
